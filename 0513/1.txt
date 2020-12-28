@@ -1,0 +1,199 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Oracle.ManagedDataAccess.Client;
+
+
+namespace WindowsFormsApp4
+{
+    public partial class Form1 : Form
+    {
+        OracleConnection con = null;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string connectString = "Data Source=222.237.134.74:1522/ora7;User Id=edu;Password=edu1234";
+            con = new OracleConnection(connectString);
+            con.Open();
+
+            if (con == null)
+            {
+                MessageBox.Show("DB연동실패");
+            }
+            else
+            {
+                MessageBox.Show("DB연동");
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (con != null)
+            {
+                con.Close();
+                con = null;
+                MessageBox.Show("db해제");
+            }
+
+            else
+            {
+                MessageBox.Show("db연결이 안됨");
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            //1. 텍스트박스에 값이 있는지 없는지 check
+            if (textBox3.Text == "")
+            {
+                MessageBox.Show("품목코드를 반드시 입력하세요");
+                return;
+            }
+            if (textBox4.Text == "")
+            {
+                MessageBox.Show("품목명를 반드시 입력하세요");
+                return;
+            }
+            if (textBox5.Text == "")
+            {
+                MessageBox.Show("규격를 반드시 입력하세요");
+                return;
+            }
+            if (textBox6.Text == "")
+            {
+                MessageBox.Show("구입일자를 반드시 입력하세요");
+                return;
+            }
+            if (textBox7.Text == "")
+            {
+                MessageBox.Show("취득가액를 반드시 입력하세요");
+                return;
+            }
+            if (textBox8.Text == "")
+            {
+                MessageBox.Show("구입처를 반드시 입력하세요");
+                return;
+            }
+            if (textBox9.Text == "")
+            {
+                MessageBox.Show("재고량를 반드시 입력하세요");
+                return;
+            }
+            if (textBox10.Text == "")
+            {
+                MessageBox.Show("물품위치를 반드시 입력하세요");
+                return;
+            }
+            if (textBox11.Text == "")
+            {
+                MessageBox.Show("비고를 반드시 입력하세요");
+                return;
+            }
+            if (textBox12.Text == "")
+            {
+                MessageBox.Show("입력자ID를 반드시 입력하세요");
+                return;
+            }
+            //2. db연동 되어있는지 확인
+            if (con == null)
+            {
+                MessageBox.Show("db연결이 안됨");
+                return;
+            }
+            //3. sql문장
+            String sql3 = "insert into cjybitem(ITEM_CODE,ITEM_NAME,ITEM_STAND,ITEM_DATE,ITEM_AMT,ITEM_COMP,ITEM_SAMT,ITEM_POSI,ITEM_ETC,USER_SYSID) values(:code3,:name3,:stand3,:date3,:amt3,:comp3,:samt3,:posi3,:etc3,:sysid3)";
+            OracleCommand cmd = con.CreateCommand();
+            cmd.CommandText = sql3;
+            cmd.Parameters.Add("code3", OracleDbType.Varchar2).Value = textBox3.Text;
+            cmd.Parameters.Add("name3", OracleDbType.Varchar2).Value = textBox4.Text;
+            cmd.Parameters.Add("stand3", OracleDbType.Varchar2).Value = textBox5.Text;
+            cmd.Parameters.Add("date3", OracleDbType.Varchar2).Value = textBox6.Text;
+            cmd.Parameters.Add("amt3", OracleDbType.Varchar2).Value = textBox7.Text;
+            cmd.Parameters.Add("comp3", OracleDbType.Varchar2).Value = textBox8.Text;
+            cmd.Parameters.Add("samt3", OracleDbType.Varchar2).Value = textBox9.Text;
+            cmd.Parameters.Add("posi3", OracleDbType.Varchar2).Value = textBox10.Text;
+            cmd.Parameters.Add("sysid3", OracleDbType.Varchar2).Value = textBox11.Text;
+            cmd.Parameters.Add("etc3", OracleDbType.Varchar2).Value = textBox12.Text;
+            //4. sql문장 실행
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("입력완료");
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            if (con == null)
+            {
+                MessageBox.Show("db연결이 안됨");
+                return;
+            }
+            //2.연결 된상태
+
+            string sql1 = "select * from cjyBITEM where ITEM_name like :name1 and item_code like :code1";
+            OracleDataReader dr;
+            //sql전달
+            OracleCommand cmd = con.CreateCommand();
+            cmd.CommandText = sql1;
+
+            cmd.Parameters.Add("name1", OracleDbType.Varchar2).Value = "%" + textBox1.Text + "%";
+            cmd.Parameters.Add("code1", OracleDbType.Varchar2).Value = "%" + textBox2.Text + "%";
+
+            //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+            dr = cmd.ExecuteReader();
+            MessageBox.Show("잘됌");
+            int rowldx = 0;
+            DataGridViewRow row;
+            dataGridView1.Rows.Clear();
+            while (dr.Read())
+            {
+                rowldx = dataGridView1.Rows.Add();
+                row = dataGridView1.Rows[rowldx];
+                row.Cells["Column1"].Value = dr["ITEM_CODE"].ToString();
+                row.Cells["Column2"].Value = dr["ITEM_name"].ToString();
+                row.Cells["Column3"].Value = dr["ITEM_STAND"].ToString();
+                row.Cells["Column4"].Value = dr["ITEM_DATE"].ToString();
+                row.Cells["Column5"].Value = dr["ITEM_AMT"].ToString();
+                row.Cells["Column6"].Value = dr["ITEM_COMP"].ToString();
+                row.Cells["Column7"].Value = dr["ITEM_SAMT"].ToString();
+                row.Cells["Column8"].Value = dr["ITEM_POSI"].ToString();
+                row.Cells["Column9"].Value = dr["ITEM_ETC"].ToString();
+                row.Cells["Column10"].Value = dr["USER_SYS"].ToString();
+                row.Cells["Column11"].Value = dr["USER_SYSID"].ToString();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox10_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
