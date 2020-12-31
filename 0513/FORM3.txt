@@ -1,0 +1,487 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Oracle.ManagedDataAccess.Client;
+using System.IO;
+
+
+namespace WindowsFormsApp6
+{
+    public partial class Form3 : Form
+    {
+        OracleConnection con = null;
+        OracleCommand cmd;
+        OracleCommand cmd1;
+        OracleCommand cmd2;
+        OracleCommand cmd3;
+        OracleCommand cmd4;
+        String code_value = "A";
+        Image img;
+        byte[] b;
+        Bitmap bitmap;
+        String sqlfind = "select a.admin_id, a.admin_pass, a.admin_name, b.img1 from cjyadmin a, cjyadmin_img b where a.admin_id= b.imgkey(+) and a.admin_id= :id";
+        OracleDataReader dr;
+
+        public Form3()
+        {
+            InitializeComponent();
+        }
+
+        
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            string sql1 = "select admin_id,admin_pass,admin_name from cjyadmin where admin_name like :name1";
+            OracleDataReader dr;
+            //sql전달
+            OracleCommand cmd = con.CreateCommand();
+            cmd.CommandText = sql1;
+            cmd.Parameters.Add("name1", OracleDbType.Varchar2).Value = "%" + txtzo.Text + "%";
+            //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+            dr = cmd.ExecuteReader();
+            MessageBox.Show("잘됌");
+            int rowldx = 0;
+            DataGridViewRow row;
+            dataGridView1.Rows.Clear();
+            while (dr.Read())
+            {
+                rowldx = dataGridView1.Rows.Add();
+                row = dataGridView1.Rows[rowldx];
+                row.Cells["Column1"].Value = dr["admin_id"].ToString();
+                row.Cells["Column2"].Value = dr["admin_pass"].ToString();
+                row.Cells["Column3"].Value = dr["admin_name"].ToString();
+            }
+        }
+
+        private void Form3_Load(object sender, EventArgs e)
+        {
+            string connectString = "Data Source=222.237.134.74:1522/ora7;User Id=edu;Password=edu1234";
+
+            try
+            {
+                con = new OracleConnection(connectString);
+                con.Open();
+
+                if (con == null)
+                {
+                    MessageBox.Show("시스템에 문제가 있으니 담당자에게 연락하세요(tel3051)");
+
+                }
+                can_function();
+            }
+            catch (Exception e1)
+            {
+                MessageBox.Show(e1.ToString());
+                con.Close();
+            }
+            finally
+            {
+
+            }
+        }
+
+        private void btnin_Click(object sender, EventArgs e)
+        {
+            code_value = "I";
+            clear_function();
+            MessageBox.Show("관리자 정보를 입력하세요");
+            txtid.Focus();
+            btn_function();
+
+
+
+        }
+
+        private void btnsu_Click(object sender, EventArgs e)
+        {
+            if (txtid.Text == "")
+            {
+                MessageBox.Show("관리자 아이디를 반드시 입력하세요");
+                return;
+            }
+            code_value = "E";
+
+            cmd = con.CreateCommand();
+            cmd.CommandText = sqlfind;
+            cmd.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+            //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+            dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+
+                txtid.Text = dr["admin_id"].ToString();
+                txtpass.Text = dr["admin_pass"].ToString();
+                txtname.Text = dr["admin_name"].ToString();
+
+                if (dr["img1"].ToString()== "")
+                {
+                    MessageBox.Show("이미지는 없습니다");
+                    
+                }
+                else
+                {
+                    pictureBox1.Image = new Bitmap(new MemoryStream((byte[])dr["img1"]));
+                    
+                }
+
+
+            }
+            else
+            {
+                MessageBox.Show("없는 아이디입니다");
+                return;
+
+            }
+            txtid.Focus();
+            //버튼 비활성화
+            btn_function();
+
+        }
+
+        private void btnde_Click(object sender, EventArgs e)
+        {
+            if (txtid.Text == "")
+            {
+                MessageBox.Show("관리자 아이디를 반드시 입력하세요");
+                return;
+            }
+            code_value = "D";
+
+            cmd = con.CreateCommand();
+            cmd.CommandText = sqlfind;
+            cmd.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+            //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+            dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+
+                txtid.Text = dr["admin_id"].ToString();
+                txtpass.Text = dr["admin_pass"].ToString();
+                txtname.Text = dr["admin_name"].ToString();
+
+                if (dr["img1"].ToString() == "")
+                {
+                    MessageBox.Show("이미지는 없습니다");
+
+                }
+                else
+                {
+                    pictureBox1.Image = new Bitmap(new MemoryStream((byte[])dr["img1"]));
+
+                }
+
+
+            }
+            else
+            {
+                MessageBox.Show("없는 아이디입니다");
+                return;
+
+            }
+            txtid.Focus();
+            //버튼 비활성화
+            btn_function();
+        }
+
+        private void btnno_Click(object sender, EventArgs e)
+        {
+            clear_function();
+            can_function();
+            code_value = "A";
+        }
+
+
+        void btn_function()
+        {
+            btnsu.Enabled = false;
+            btnin.Enabled = false;
+            btnde.Enabled = false;
+            btnok.Enabled = true;
+            btnno.Enabled = true;
+        }
+
+        void can_function()
+        {
+            btnsu.Enabled = true;
+            btnin.Enabled = true;
+            btnde.Enabled = true;
+            btnok.Enabled = false;
+            btnno.Enabled = false;
+        }
+        void clear_function()
+        {
+            txtid.Text = "";
+            txtpass.Text = "";
+            txtname.Text = "";
+            pictureBox1.Image = null;
+        }
+
+        private void btnok_Click(object sender, EventArgs e)
+        {
+            if (txtid.Text == "")
+            {
+                MessageBox.Show("관리자 아이디를 반드시 입력하세요");
+                return;
+            }
+            if (txtpass.Text == "")
+            {
+                MessageBox.Show("관리자 비밀번호를 반드시 입력하세요");
+                return;
+            }
+            if (txtname.Text == "")
+            {
+                MessageBox.Show("관리자 이름를 반드시 입력하세요");
+                return;
+            }
+            //확인버튼클릭했을떄
+            //code_value ="I" --> insert
+            //code_value ="E" --> update
+            //code_value ="D" --> delete
+            
+            
+            if (code_value == "I")
+            {
+                //insert
+                //관리자 아이디가 있는지 판단
+                //있으면 안돼라고 판단
+                //없으면 insert 해준다
+                
+                    //sql전달
+                    cmd = con.CreateCommand();
+                    cmd.CommandText = sqlfind;
+                    cmd.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+
+                    //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+                    dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        MessageBox.Show("이미 있는 아이디입니다");
+                        return;
+                    }
+                    else
+                    {
+                            
+                            String sqlinsert = "insert into cjyadmin(ADMIN_ID,ADMIN_PASS,ADMIN_NAME) " +
+                                                "values(:id,:pass,:name)";
+                            cmd1 = con.CreateCommand();
+                            cmd1.CommandText = sqlinsert;
+                            cmd1.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+                            cmd1.Parameters.Add("pass", OracleDbType.Varchar2).Value = txtpass.Text;
+                            cmd1.Parameters.Add("name", OracleDbType.Varchar2).Value = txtname.Text;
+                            //4. sql문장 실행
+                            cmd1.ExecuteNonQuery();
+                            MessageBox.Show("입력완료");
+                            can_function();
+                            
+                }
+                if (pictureBox1.Image == null)
+                {
+                    MessageBox.Show("사진없음");
+                    clear_function();
+                    return;
+                }
+                else
+                {
+                    
+                    String sqlimg= "insert into cjyadmin_img(imgkey,img1) values(:imgkey,:img1)";
+                    cmd2 = con.CreateCommand();
+                    cmd2.CommandText = sqlimg;
+                    cmd2.Parameters.Add("imgkey", OracleDbType.Varchar2).Value = txtid.Text;
+                    cmd2.Parameters.Add("img1", OracleDbType.Blob, b.Length, b,ParameterDirection.Input);
+                    cmd2.ExecuteNonQuery();
+                    MessageBox.Show("사진성공");
+                    clear_function();
+                }
+            }
+            if (code_value == "E")
+            {
+                //update
+                //관리자 아이디가 있는지 판단
+                //없으면 안돼라고 판단
+                //있으면 update 해준다
+
+                //sql전달
+
+                cmd = con.CreateCommand();
+                cmd.CommandText = sqlfind;
+                cmd.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+
+                //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+                dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    DialogResult result = MessageBox.Show("수정하시겠습니까?", "수정확인", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                    if (result == DialogResult.No) return;
+                    String sqlup = " update cjyadmin set admin_name= :name, " +
+                          " admin_pass= :pass where admin_id= :id ";
+                    OracleCommand cmd1 = con.CreateCommand();
+                    cmd1.CommandText = sqlup;
+                    cmd1.Parameters.Add("name", OracleDbType.Varchar2).Value = txtname.Text;
+                    cmd1.Parameters.Add("pass", OracleDbType.Varchar2).Value = txtpass.Text;
+                    cmd1.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+                    //4. sql문장 실행
+                    cmd1.ExecuteNonQuery();
+                    MessageBox.Show("수정되었습니다");
+                    can_function();
+                    
+                }
+                else
+                {
+                    MessageBox.Show("없는 아이디입니다");
+                    return;
+                    
+                }
+                //사진이 있나 확인
+                //sql문으로 id값을 읽어와서 img테이블에 있는지 확인
+                //없으면 사진없음
+                //있으면 update문
+                if (pictureBox1.Image == null)
+                {
+                    MessageBox.Show("이미지없음");
+                    return;
+                }
+                else
+                {
+                    String sqlimgchek = "select imgkey from cjyadmin_img where imgkey=:id2";
+                    cmd2 = con.CreateCommand();
+                    cmd2.CommandText = sqlimgchek;
+                    cmd2.Parameters.Add("id2", OracleDbType.Varchar2).Value = txtid.Text;
+                    //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+                    dr = cmd2.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        
+                        String sqlimg = "update cjyadmin_img set img1=:img1 where imgkey=:imgkey";
+                        cmd3 = con.CreateCommand();
+                        cmd3.CommandText = sqlimg;
+                        cmd3.Parameters.Add("img1", OracleDbType.Blob, b.Length, b, ParameterDirection.Input);
+                        cmd3.Parameters.Add("imgkey", OracleDbType.Varchar2).Value = txtid.Text;
+                        cmd3.ExecuteNonQuery();
+                        MessageBox.Show("사진성공");
+                        clear_function();
+
+                    }
+                    else
+                    {
+
+                        String sqlimg = "insert into cjyadmin_img(imgkey,img1) values(:imgkey,:img1)";
+                        cmd4 = con.CreateCommand();
+                        cmd4.CommandText = sqlimg;
+                        cmd4.Parameters.Add("imgkey", OracleDbType.Varchar2).Value = txtid.Text;
+                        cmd4.Parameters.Add("img1", OracleDbType.Blob, b.Length, b, ParameterDirection.Input);
+                        cmd4.ExecuteNonQuery();
+                        MessageBox.Show("사진성공");
+                        clear_function();
+                    }
+                }
+            }
+            if (code_value == "D")
+            {
+                //delete
+                //관리자 아이디가 있는지 판단
+                //없으면 안돼라고 판단
+                //있으면 delete 해준다
+
+                //sql전달
+                cmd = con.CreateCommand();
+                cmd.CommandText = sqlfind;
+                cmd.Parameters.Add("id", OracleDbType.Varchar2).Value = txtid.Text;
+
+                //sql실행 요청 ->실행결과를 dr받아 놓은 상태
+                dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    DialogResult result = MessageBox.Show("삭제하시겠습니까?", "삭제확인", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                    if (result == DialogResult.No) return;
+                    //SQL문
+                    string sqlde = "DELETE from cjyadmin where ADMIN_ID= :id1";
+                    OracleCommand cmd1 = con.CreateCommand();
+                    cmd1.CommandText = sqlde;
+                    cmd1.Parameters.Add("id1", OracleDbType.Varchar2).Value = txtid.Text;
+                    //4. sql문장 실행
+                    cmd1.ExecuteNonQuery();
+
+
+
+                    string sqlde2 = "DELETE from cjyadmin_img where imgkey= :key1";
+                    OracleCommand cmd2 = con.CreateCommand();
+                    cmd2.CommandText = sqlde2;
+                    cmd2.Parameters.Add("key1", OracleDbType.Varchar2).Value = txtid.Text;
+                    //4. sql문장 실행
+                    cmd2.ExecuteNonQuery();
+
+                    MessageBox.Show("삭제되었습니다");
+                    can_function();
+                    clear_function();
+                }
+                else
+                {
+                    MessageBox.Show("없는 아이디입니다");
+                    return;
+
+                }
+            }
+        }
+
+        private void dataGridView1_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            
+            
+            txtid.Text = dataGridView1.Rows[e.RowIndex].Cells[0].FormattedValue.ToString();
+            txtpass.Text = dataGridView1.Rows[e.RowIndex].Cells[1].FormattedValue.ToString();
+            txtname.Text = dataGridView1.Rows[e.RowIndex].Cells[2].FormattedValue.ToString();
+            
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            //얘쓰면 안됨
+        }
+
+        private void btnpic_Click(object sender, EventArgs e)
+        {
+            string image_file = "";
+            //이미지 선택하기위한 다디얼로그창 생성
+            OpenFileDialog dialog = new OpenFileDialog();
+
+            //파일선택창을 띄울떄 c드라이브로 setting->아니면 바탕화면으로 선택됨
+            dialog.InitialDirectory = @"C:\";
+
+            if (dialog.ShowDialog()==DialogResult.OK)
+            {
+                //선택파일을 파일이름 저장
+                image_file = dialog.FileName;
+
+                //선택된파일을 image로 변환
+                img = Bitmap.FromFile(image_file);
+
+                ImageConverter converter = new ImageConverter();
+                b = (byte[])converter.ConvertTo(img, typeof(byte[]));
+
+                if (b.Length >= Math.Pow(2, 10) * 20)
+                {
+                    MessageBox.Show("20kb 이하의 사진을 등록해주세요.");
+                    return;//2의10승*20==20kb
+                }
+                //PicturBox 커틀로에 선택한 이미지를 넣습니다.
+                pictureBox1.Image = Bitmap.FromFile(image_file);
+            }
+
+
+
+
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            
+        }
+    } 
+    
+}
